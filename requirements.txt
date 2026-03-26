@@ -1,0 +1,14 @@
+# DPSA Chatbot — Python dependencies
+# Install with: python -m pip install -r requirements.txt
+
+# ── Phase 1: Text-to-text multilingual bot ────────────────────────────────────
+google-cloud-translate       # Translation + language detection (Google Cloud)
+google-auth                  # Service account credentials (google.oauth2)
+python-dotenv                # Load .env variables
+groq                         # Groq API -- Llama 3.3 70B inference
+fastapi                      # REST API server wrapping the pipeline
+uvicorn[standard]            # ASGI server for FastAPI
+
+# ── Phase 2: Voice (install when Phase 2 begins) ──────────────────────────────
+# azure-cognitiveservices-speech   # Azure TTS (en-ZA, af-ZA, zu-ZA)
+# google-cloud-speech              # Google STT V2

@@ -1,0 +1,124 @@
+{
+  "chunks": [
+    {
+      "id": "chunk_annual_leave_001",
+      "content": "Public servants in South Africa are entitled to annual leave under the DPSA Leave Policy and the Public Service Act. Employees on salary levels 1 to 8 are entitled to 30 working days of annual leave per leave cycle. Employees on salary levels 9 to 12 are entitled to 22 working days per leave cycle. A leave cycle is a 12-month period from 1 January to 31 December. Annual leave must be applied for in advance using Form Z86 or through the PERSAL system and approved by the relevant supervisor. Unused annual leave may not be accumulated indefinitely — any leave not taken within the cycle may be forfeited unless a formal agreement is made with the supervisor. Annual leave may be taken in full or in portions agreed between the employee and supervisor.",
+      "source_url": "https://www.dpsa.gov.za/dpsa2g/documents/leavepolicy/leave_policy_2000.pdf",
+      "source_title": "DPSA Leave Policy — Public Service Coordinating Bargaining Council",
+      "category": "benefits",
+      "doc_type": "pdf",
+      "scraped_at": "2026-02-14T08:00:00Z",
+      "similarity_score": 0.0
+    },
+    {
+      "id": "chunk_sick_leave_001",
+      "content": "Sick leave entitlement for public servants is governed by PSCBC Resolution 7 of 2000. During a sick leave cycle of three years, an employee is entitled to sick leave equal to the number of days they would normally work in a six-week period. For a five-day-per-week employee this equals 36 working days over the 3-year cycle. An employee may only use sick leave if they present a medical certificate from a registered medical practitioner for absences exceeding two consecutive days, or on more than two occasions within an eight-week period. Sick leave is credited in full at the start of each three-year cycle. If sick leave is exhausted, the employee may apply for temporary incapacity leave subject to medical investigation by the Health Risk Manager.",
+      "source_url": "https://www.dpsa.gov.za/dpsa2g/documents/leavepolicy/pscbc_resolution_7_2000.pdf",
+      "source_title": "PSCBC Resolution 7 of 2000 — Leave Provisions for Public Service Employees",
+      "category": "benefits",
+      "doc_type": "pdf",
+      "scraped_at": "2026-02-14T08:00:00Z",
+      "similarity_score": 0.0
+    },
+    {
+      "id": "chunk_z83_form_001",
+      "content": "Form Z83 is the official application form for employment in the Public Service of South Africa. All applicants must complete Form Z83 in full — incomplete forms will be disqualified. The form requires personal particulars, identity document number, contact details, educational qualifications, previous employment history, and a declaration regarding criminal record. As of 1 January 2021, applicants are no longer required to submit certified copies of qualifications at application stage. Only shortlisted candidates will be asked to provide certified copies before or at the interview. The current version of Form Z83 is available on the DPSA website at www.dpsa.gov.za. The form must not be altered in any way. Applications must include a comprehensive CV alongside the completed Z83.",
+      "source_url": "https://www.dpsa.gov.za/dpsa2g/documents/vacancies/Z83.pdf",
+      "source_title": "Form Z83 — Application for Employment in the Public Service",
+      "category": "procedures",
+      "doc_type": "form",
+      "scraped_at": "2026-02-20T10:00:00Z",
+      "similarity_score": 0.0
+    },
+    {
+      "id": "chunk_leave_without_pay_001",
+      "content": "Leave without pay (LWOP) may be granted to a public servant under Regulation 57 of the Public Service Regulations 2016. LWOP is discretionary and must be applied for in writing and approved by the Head of Department or their delegate. Common grounds for approval include accompanying a spouse on an international posting, attending educational programmes not covered by bursary, and personal emergencies. LWOP does not count as pensionable service — the period of LWOP is not credited for purposes of pension contributions or service benefits. The maximum continuous period of LWOP is generally 12 months unless exceptional circumstances are approved in writing. Employees on LWOP receive no remuneration during the approved period and must arrange for their own medical aid contributions if applicable.",
+      "source_url": "https://www.dpsa.gov.za/dpsa2g/documents/acts&regulations/PSR2016/PSR2016.pdf",
+      "source_title": "Public Service Regulations 2016 — Regulation 57: Special Leave",
+      "category": "policies",
+      "doc_type": "regulation",
+      "scraped_at": "2026-01-30T09:00:00Z",
+      "similarity_score": 0.0
+    },
+    {
+      "id": "chunk_grievance_001",
+      "content": "The grievance procedure for public servants is set out in DPSA Circular 5 of 2005 and the Public Service Regulations 2016. An employee who has a grievance should first attempt informal resolution with the immediate supervisor. If unresolved informally, a formal written grievance must be submitted to the supervisor within 90 days of the event giving rise to the grievance. The supervisor must respond in writing within 10 working days. If still unresolved, the grievance is escalated to the Head of Department who must respond within 10 working days. If the employee remains aggrieved, the matter may be referred to the Public Service Commission or the relevant bargaining council. Grievances about PERSAL transactions or salary errors should be directed to the departmental HR unit in the first instance.",
+      "source_url": "https://www.dpsa.gov.za/dpsa2g/documents/employees/grievance_procedure.pdf",
+      "source_title": "DPSA Grievance Procedure Circular 5 of 2005",
+      "category": "procedures",
+      "doc_type": "circular",
+      "scraped_at": "2026-01-15T08:00:00Z",
+      "similarity_score": 0.0
+    },
+    {
+      "id": "chunk_performance_management_001",
+      "content": "The Performance Management and Development System (PMDS) for public servants at salary levels 1 to 12 is governed by Chapter 4 of the Public Service Regulations 2016. Every employee must have a signed Performance Agreement in place within three months of appointment or the start of each performance cycle. The performance cycle runs from 1 April to 31 March. Assessments are conducted at midterm (around October) and at year-end (March). Employees are rated on a five-point scale: Outstanding (5), Highly Effective (4), Effective (3), Development Required (2), and Unsatisfactory (1). A rating of 4 or 5 qualifies the employee for a performance bonus subject to departmental budget availability. A rating of 1 or 2 triggers a performance improvement process and may lead to incapacity proceedings if not resolved.",
+      "source_url": "https://www.dpsa.gov.za/dpsa2g/documents/PMDS/pmds_guide_2016.pdf",
+      "source_title": "DPSA Performance Management and Development System Guide 2016",
+      "category": "policies",
+      "doc_type": "pdf",
+      "scraped_at": "2026-02-01T09:00:00Z",
+      "similarity_score": 0.0
+    },
+    {
+      "id": "chunk_maternity_leave_001",
+      "content": "Female public servants are entitled to maternity leave under PSCBC Resolution 3 of 1999 as amended. An employee is entitled to four consecutive months of maternity leave. During the first two months the employee receives full pay. The remaining two months are unpaid unless the employee elects to use annual leave credits to cover part or all of this period. Maternity leave should commence no later than one month before the expected date of delivery. The employee must notify her supervisor as soon as the pregnancy is confirmed and submit a medical certificate indicating the expected date of delivery. Maternity leave does not affect the employee's annual leave entitlement for that leave cycle. Adoption leave provisions are separate and are governed by departmental policy.",
+      "source_url": "https://www.dpsa.gov.za/dpsa2g/documents/leavepolicy/pscbc_resolution_3_1999.pdf",
+      "source_title": "PSCBC Resolution 3 of 1999 — Maternity Leave for Public Service Employees",
+      "category": "benefits",
+      "doc_type": "regulation",
+      "scraped_at": "2026-02-14T08:00:00Z",
+      "similarity_score": 0.0
+    },
+    {
+      "id": "chunk_family_responsibility_leave_001",
+      "content": "Family responsibility leave (FRL) is available to all permanent public servants under PSCBC Resolution 7 of 2000. Employees are entitled to three working days of family responsibility leave per leave cycle. FRL may be taken for: the birth of the employee's child, illness of the employee's child under 18, and the death of a spouse, life partner, parent, adoptive parent, grandparent, child, adopted child, grandchild, or sibling. Documentary evidence must be provided — a death certificate for bereavement leave or a medical certificate for a sick child. Family responsibility leave may not be accumulated and any unused days lapse at the end of the leave cycle. FRL days are not convertible to cash or other forms of leave.",
+      "source_url": "https://www.dpsa.gov.za/dpsa2g/documents/leavepolicy/pscbc_resolution_7_2000.pdf",
+      "source_title": "PSCBC Resolution 7 of 2000 — Leave Provisions for Public Service Employees",
+      "category": "benefits",
+      "doc_type": "regulation",
+      "scraped_at": "2026-02-14T08:00:00Z",
+      "similarity_score": 0.0
+    },
+    {
+      "id": "chunk_appointment_procedure_001",
+      "content": "Appointments in the public service must comply with Chapter 4 of the Public Service Act 1994 and the DPSA Recruitment and Selection Framework. All vacant posts must be advertised in the Public Service Vacancy Circular published weekly on the DPSA website at www.dpsa.gov.za. Posts at salary levels 1 to 12 must be advertised for a minimum of 7 days. Senior Management Service (SMS) posts at salary levels 13 to 16 must be advertised for a minimum of 14 days. Shortlisting and interviews must be conducted by a panel of at least three members that reflects demographic representivity. Appointments of SMS members require the concurrence of the relevant Executive Authority or Minister. All appointments are subject to security vetting, qualifications verification, and reference checks.",
+      "source_url": "https://www.dpsa.gov.za/dpsa2g/documents/acts&regulations/PSA/PSA_2023.pdf",
+      "source_title": "Public Service Act 1994 (as amended 2023) — Chapter 4: Appointments",
+      "category": "procedures",
+      "doc_type": "regulation",
+      "scraped_at": "2026-01-20T08:00:00Z",
+      "similarity_score": 0.0
+    },
+    {
+      "id": "chunk_dpsa_contact_001",
+      "content": "The Department of Public Service and Administration (DPSA) head office is at Batho Pele House, 116 Proes Street, Arcadia, Pretoria, 0001. The DPSA switchboard number is +27 12 336 1000. For public service vacancy enquiries visit the DPSA Vacancy Circular at https://www.dpsa.gov.za/dpsa2g/vacancies.asp. For leave and HR policy enquiries contact your departmental Human Resources unit directly. For general information email info@dpsa.gov.za. The DPSA public enquiries desk is open Monday to Friday from 07:30 to 16:00. The DPSA website at www.dpsa.gov.za provides access to all policies, circulars, forms, and vacancy advertisements. The SMS Hotline for integrity issues is 0800 701 701 (toll-free).",
+      "source_url": "https://www.dpsa.gov.za/dpsa2g/aboutdpsa.asp",
+      "source_title": "DPSA About DPSA — Contact Details",
+      "category": "employment",
+      "doc_type": "html",
+      "scraped_at": "2026-02-28T10:00:00Z",
+      "similarity_score": 0.0
+    },
+    {
+      "id": "chunk_incapacity_leave_001",
+      "content": "Incapacity leave is granted when an employee's sick leave is exhausted and they are unable to work due to illness or injury. There are two types: Temporary Incapacity Leave (TIL) for employees expected to recover, and Permanent Incapacity Leave (PIL) where recovery is unlikely and the employee may be retired on medical grounds. Applications for TIL or PIL must be supported by a medical report from a government doctor or specialist. The Health Risk Manager (HRM) contracted by DPSA investigates applications and makes a recommendation to the Head of Department. The HRM for the public service is Interfront (Pty) Ltd — contact details are available through your departmental HR unit. All applications are processed through PERSAL and should be submitted with full medical documentation.",
+      "source_url": "https://www.dpsa.gov.za/dpsa2g/documents/leavepolicy/incapacity_leave_guide.pdf",
+      "source_title": "DPSA Incapacity Leave Guidelines",
+      "category": "benefits",
+      "doc_type": "pdf",
+      "scraped_at": "2026-02-14T08:00:00Z",
+      "similarity_score": 0.0
+    },
+    {
+      "id": "chunk_public_service_regulations_001",
+      "content": "The Public Service Regulations 2016 (GNR 877, Government Gazette 40167) came into effect on 1 August 2016 and replaced the Public Service Regulations of 2001. The 2016 Regulations govern all aspects of the public service employment relationship including: recruitment and selection, conditions of service, performance management, leave, financial disclosure, and discipline. The Regulations apply to all employees in departments listed in Schedules 1 and 2 of the Public Service Act 1994. Constitutional institutions established under Chapter 9 of the Constitution and public entities listed under the PFMA are generally not bound by these Regulations unless specifically included. The full text of the Public Service Regulations 2016 is available on the DPSA website. Senior managers must also comply with the Senior Management Service Handbook.",
+      "source_url": "https://www.dpsa.gov.za/dpsa2g/documents/acts&regulations/PSR2016/PSR2016.pdf",
+      "source_title": "Public Service Regulations 2016",
+      "category": "policies",
+      "doc_type": "regulation",
+      "scraped_at": "2026-01-30T09:00:00Z",
+      "similarity_score": 0.0
+    }
+  ]
+}

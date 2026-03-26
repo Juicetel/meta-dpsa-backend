@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: dpsa-bot-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      # Set these in the Render dashboard — do NOT hardcode secrets here
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GOOGLE_CREDENTIALS_JSON
+        sync: false
+
+      # Non-secret defaults safe to commit
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: AWS_SEARCH_URL
+        value: http://13.247.229.2:8000/api/documents/search/
+      - key: SESSION_STORE_BACKEND
+        value: memory
+      - key: LOG_LEVEL
+        value: INFO
+      - key: MAX_RETRIEVAL_CHUNKS
+        value: "5"
+      - key: MAX_FOLLOWUPS
+        value: "3"
+      - key: RETRIEVER_TIMEOUT
+        value: "10"
