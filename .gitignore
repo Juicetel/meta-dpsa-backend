@@ -1,3 +1,9 @@
+# Claude Code local settings
+.claude/
+
+# PDFs (documentation, test files — not needed in repo)
+*.pdf
+
 # Secrets — NEVER commit
 .env
 credentials.json

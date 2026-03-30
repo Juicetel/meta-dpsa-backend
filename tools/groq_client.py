@@ -26,6 +26,7 @@ load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_VISION_MODEL = os.getenv("GROQ_VISION_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
 SYSTEM_PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "system_prompt.md"
 
 _client = None
@@ -136,16 +137,19 @@ def generate_response(
     english_query: str,
     session_context: dict,
     retrieved_chunks: list,
+    images: list | None = None,
 ) -> dict:
     """
-    Generate a grounded response using the Groq API (Llama 3.3 70B).
+    Generate a grounded response using the Groq API.
 
     Args:
-        english_query:    User query already translated to English.
+        english_query:    User query already translated to English (may include
+                          extracted PDF/text content appended as context).
         session_context:  Dict from session_store.load_session() containing
                           {"history": [...], "language": str, "turn_count": int}.
-        retrieved_chunks: List of chunk dicts from mock_retriever.retrieve()
-                          (or retriever.retrieve() in production).
+        retrieved_chunks: List of chunk dicts from retriever.retrieve().
+        images:           Optional list of image dicts [{base64, media_type}].
+                          When provided, a vision-capable model is used.
 
     Returns:
         {
@@ -161,27 +165,46 @@ def generate_response(
     if not english_query or not english_query.strip():
         raise ValueError("english_query cannot be empty.")
 
+    # Normalise to a guaranteed list so type checkers are satisfied
+    image_list: list = images if images is not None else []
+
     client = _get_client()
     system_prompt = _load_system_prompt()
     context_block = _format_chunks_as_context(retrieved_chunks)
     session_block = _format_session_context(session_context)
 
-    # Build the user message with clearly labelled sections
+    # Build the text portion of the user message
     parts = []
     if session_block:
         parts.append(session_block)
     parts.append(context_block)
     parts.append(f"USER QUESTION:\n{english_query}")
 
-    user_message = "\n\n".join(parts)
+    user_text = "\n\n".join(parts)
+
+    # Build user message content — plain text or multimodal (with images)
+    has_images = bool(image_list)
+    if has_images:
+        user_content: list | str = [{"type": "text", "text": user_text}]
+        for img in image_list:
+            user_content.append({
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:{img['media_type']};base64,{img['base64']}"
+                },
+            })
+        model: str = GROQ_VISION_MODEL
+    else:
+        user_content = user_text
+        model = GROQ_MODEL
 
     try:
         completion = client.chat.completions.create(
-            model=GROQ_MODEL,
+            model=model,
             max_tokens=1024,
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message},
+                {"role": "user", "content": user_content},
             ],
         )
     except Exception as e:

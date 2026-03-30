@@ -54,9 +54,14 @@ app.add_middleware(
 # Schemas
 # ---------------------------------------------------------------------------
 
+class ImageAttachment(BaseModel):
+    base64: str
+    media_type: str
+
 class ChatRequest(BaseModel):
     query: str
     session_id: str
+    images: list[ImageAttachment] = []
 
 class NewSessionResponse(BaseModel):
     session_id: str
@@ -94,5 +99,6 @@ def chat(req: ChatRequest):
     if not query:
         raise HTTPException(status_code=400, detail="Query must not be empty.")
 
-    result = run_pipeline(query, req.session_id)
+    images = [{"base64": img.base64, "media_type": img.media_type} for img in req.images]
+    result = run_pipeline(query, req.session_id, images=images)
     return result

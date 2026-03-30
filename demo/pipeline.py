@@ -42,7 +42,7 @@ _LOW_CONFIDENCE_CAVEAT = (
 )
 
 
-def run_pipeline(query: str, session_id: str) -> dict:
+def run_pipeline(query: str, session_id: str, images: list | None = None) -> dict:
     """
     Execute the full 12-step query_handler.md pipeline.
 
@@ -145,7 +145,7 @@ def run_pipeline(query: str, session_id: str) -> dict:
     response_confidence = 0.0
 
     try:
-        llm_result = generate_response(english_query, session_context, retrieved_chunks)
+        llm_result = generate_response(english_query, session_context, retrieved_chunks, images=images)
         english_response = llm_result["english_response"]
         used_chunk_ids = llm_result["used_chunk_ids"]
         response_confidence = llm_result["response_confidence"]
