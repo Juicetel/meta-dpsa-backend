@@ -211,7 +211,12 @@ Use phrases like "According to [Document Title]..." rather than stating things a
 If a chunk's scraped_at date appears old, note: "Please verify this on www.dpsa.gov.za as policies may have been updated."
 
 Source citation format (always include at end of response):
-Source: [Document Title] - [source_url]
+Sources:
+- Document Title (source_url)
+
+IMPORTANT: Do NOT use markdown link syntax [title](url) in the source citation. Write the URL as plain text inside parentheses. Example:
+Sources:
+- Early Retirement Policy (https://www.dpsa.gov.za/documents/Early%20retirement.pdf)
 
 ---
 

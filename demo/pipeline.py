@@ -8,9 +8,11 @@ Pending production swap:
 """
 
 import os
+import re
 import sys
 import time
 from pathlib import Path
+from urllib.parse import quote, urlsplit, urlunsplit
 
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -40,6 +42,34 @@ _LOW_CONFIDENCE_CAVEAT = (
     "For a definitive answer, please visit www.dpsa.gov.za "
     "or contact DPSA at info@dpsa.gov.za.*"
 )
+
+
+def _encode_response_urls(text: str) -> str:
+    """
+    URL-encode spaces in any URLs embedded in the LLM response text.
+    Handles both markdown links [title](url) and bare URLs in plain text.
+    Prevents broken links when document filenames contain spaces.
+    """
+    def _fix_url(url: str) -> str:
+        parts = urlsplit(url)
+        return urlunsplit((
+            parts.scheme, parts.netloc,
+            quote(parts.path, safe="/"),
+            parts.query, parts.fragment,
+        ))
+
+    # Fix markdown links: [title](url with spaces)
+    def _fix_markdown(m: re.Match) -> str:
+        return f"]({_fix_url(m.group(1))})"
+
+    text = re.sub(r"\]\((https?://[^)]+)\)", _fix_markdown, text)
+
+    # Fix bare URLs in plain text (e.g. Source: Title (url with spaces))
+    def _fix_bare(m: re.Match) -> str:
+        return _fix_url(m.group(0))
+
+    text = re.sub(r"https?://\S+", _fix_bare, text)
+    return text
 
 
 def run_pipeline(query: str, session_id: str, images: list | None = None) -> dict:
@@ -146,7 +176,7 @@ def run_pipeline(query: str, session_id: str, images: list | None = None) -> dic
 
     try:
         llm_result = generate_response(english_query, session_context, retrieved_chunks, images=images)
-        english_response = llm_result["english_response"]
+        english_response = _encode_response_urls(llm_result["english_response"])
         used_chunk_ids = llm_result["used_chunk_ids"]
         response_confidence = llm_result["response_confidence"]
         log_step(7, "Generate response", f"confidence: {response_confidence:.2f}")
