@@ -17,6 +17,7 @@ import os
 import urllib.error
 import urllib.request
 from pathlib import Path
+from urllib.parse import quote, urlsplit, urlunsplit
 
 from dotenv import load_dotenv
 
@@ -109,6 +110,14 @@ def retrieve(query: str, top_k: int = None) -> list:
 
         # Use direct document URL for citations; fall back to page URL
         source_url = item.get("source_url") or item.get("source_page_url", "")
+        # URL-encode spaces and special chars in the path (e.g. "Annual Report.pdf")
+        if source_url:
+            parts = urlsplit(source_url)
+            source_url = urlunsplit((
+                parts.scheme, parts.netloc,
+                quote(parts.path, safe="/"),
+                parts.query, parts.fragment,
+            ))
 
         # Infer doc_type from URL extension
         url_lower = source_url.lower()
