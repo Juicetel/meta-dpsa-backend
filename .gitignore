@@ -52,3 +52,13 @@ htmlcov/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Frontend (Nuxt) build artifacts
+frontend/node_modules/
+frontend/.nuxt/
+frontend/.output/
+frontend/.pnpm-store/
+frontend/.claude/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
