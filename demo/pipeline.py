@@ -46,29 +46,34 @@ _LOW_CONFIDENCE_CAVEAT = (
 
 def _encode_response_urls(text: str) -> str:
     """
-    URL-encode spaces in any URLs embedded in the LLM response text.
-    Handles both markdown links [title](url) and bare URLs in plain text.
-    Prevents broken links when document filenames contain spaces.
+    URL-encode spaces in document URLs embedded in the LLM response.
+    Handles:
+      - Markdown links:         [title](url with spaces)
+      - Paren plain-text URLs:  Title (url with spaces)
+    Skips already-encoded URLs (those containing %) to prevent double-encoding.
     """
     def _fix_url(url: str) -> str:
+        if "%" in url:          # already encoded — skip
+            return url
         parts = urlsplit(url)
+        if not parts.scheme:    # not a real URL — skip
+            return url
         return urlunsplit((
             parts.scheme, parts.netloc,
             quote(parts.path, safe="/"),
             parts.query, parts.fragment,
         ))
 
-    # Fix markdown links: [title](url with spaces)
-    def _fix_markdown(m: re.Match) -> str:
+    # Fix markdown links: [title](url)  — [^)] captures spaces inside parens
+    def _fix_md(m: re.Match) -> str:
         return f"]({_fix_url(m.group(1))})"
+    text = re.sub(r"\]\((https?://[^)]*)\)", _fix_md, text)
 
-    text = re.sub(r"\]\((https?://[^)]+)\)", _fix_markdown, text)
+    # Fix plain-text paren citations: (https://... url with spaces)
+    def _fix_paren(m: re.Match) -> str:
+        return f"({_fix_url(m.group(1))})"
+    text = re.sub(r"\((https?://[^)]*)\)", _fix_paren, text)
 
-    # Fix bare URLs in plain text (e.g. Source: Title (url with spaces))
-    def _fix_bare(m: re.Match) -> str:
-        return _fix_url(m.group(0))
-
-    text = re.sub(r"https?://\S+", _fix_bare, text)
     return text
 
 
