@@ -44,6 +44,39 @@ _LOW_CONFIDENCE_CAVEAT = (
 )
 
 
+def _strip_hallucinated_urls(text: str, valid_urls: set[str]) -> str:
+    """
+    Remove any dpsa.gov.za URLs from the LLM response that were NOT returned
+    by the retriever. Replaces hallucinated document links with www.dpsa.gov.za
+    so users aren't sent to broken pages.
+    """
+    if not valid_urls:
+        return text
+
+    # Normalise valid URLs to lower-case for comparison
+    valid_lower = {u.lower() for u in valid_urls}
+
+    def _check(url: str) -> str:
+        """Return url if valid, else www.dpsa.gov.za."""
+        if "dpsa.gov.za" not in url.lower():
+            return url                          # non-DPSA URLs pass through
+        if url.lower() in valid_lower:
+            return url                          # confirmed retrieved URL
+        return "https://www.dpsa.gov.za"        # hallucinated — replace safely
+
+    # Replace markdown links: [title](bad_url) → [title](https://www.dpsa.gov.za)
+    def _fix_md(m: re.Match) -> str:
+        return f"]({_check(m.group(1))})"
+    text = re.sub(r"\]\((https?://[^)]*)\)", _fix_md, text)
+
+    # Replace plain-text paren URLs: (bad_url) → (https://www.dpsa.gov.za)
+    def _fix_paren(m: re.Match) -> str:
+        return f"({_check(m.group(1))})"
+    text = re.sub(r"\((https?://[^)]*)\)", _fix_paren, text)
+
+    return text
+
+
 def _encode_response_urls(text: str) -> str:
     """
     URL-encode spaces in document URLs embedded in the LLM response.
@@ -181,7 +214,9 @@ def run_pipeline(query: str, session_id: str, images: list | None = None) -> dic
 
     try:
         llm_result = generate_response(english_query, session_context, retrieved_chunks, images=images)
-        english_response = _encode_response_urls(llm_result["english_response"])
+        valid_urls = {c.get("source_url", "") for c in retrieved_chunks if c.get("source_url")}
+        raw_response = _encode_response_urls(llm_result["english_response"])
+        english_response = _strip_hallucinated_urls(raw_response, valid_urls)
         used_chunk_ids = llm_result["used_chunk_ids"]
         response_confidence = llm_result["response_confidence"]
         log_step(7, "Generate response", f"confidence: {response_confidence:.2f}")
