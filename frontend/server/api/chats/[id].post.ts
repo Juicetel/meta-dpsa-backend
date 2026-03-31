@@ -166,7 +166,8 @@ export default defineEventHandler(async (event) => {
   if (pipelineResult.source_links?.length > 0) {
     parts.push('\n\n**Sources:**')
     for (const src of pipelineResult.source_links) {
-      parts.push(`- [${src.title}](${src.url})`)
+      const safeUrl = src.url.replace(/ /g, '%20')
+      parts.push(`- [${src.title}](${safeUrl})`)
     }
   }
 
