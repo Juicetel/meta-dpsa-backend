@@ -60,6 +60,11 @@ export default defineNuxtConfig({
     }
   },
 
+  runtimeConfig: {
+    // Private — only available server-side (Nitro)
+    dpsaApiUrl: process.env.DPSA_API_URL || 'http://localhost:8000'
+  },
+
   eslint: {
     config: {
       stylistic: {

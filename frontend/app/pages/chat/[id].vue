@@ -6,9 +6,11 @@ import type { UIMessage } from 'ai'
 import { useClipboard } from '@vueuse/core'
 import { getTextFromMessage } from '@nuxt/ui/utils/ai'
 import ProseStreamPre from '../../components/prose/PreStream.vue'
+import ProseANewTab from '../../components/prose/A.vue'
 
 const components = {
-  pre: ProseStreamPre as unknown as DefineComponent
+  pre: ProseStreamPre as unknown as DefineComponent,
+  a: ProseANewTab as unknown as DefineComponent
 }
 
 const route = useRoute()
