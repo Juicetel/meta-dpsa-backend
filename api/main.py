@@ -30,7 +30,11 @@ from demo.pipeline import run_pipeline
 # ---------------------------------------------------------------------------
 # App
 # ---------------------------------------------------------------------------
+@app.get("/")
+def read_root():
+    return {"status": "Backend is running!"}
 
+    
 app = FastAPI(
     title="Batho Pele AI API",
     description="REST API for the DPSA multilingual chatbot pipeline",
