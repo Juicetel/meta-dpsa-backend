@@ -41,7 +41,6 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://meta-dpsa-frontend-2.vercel.app",
         "http://localhost:3000",
         "http://localhost:3001",
         "http://localhost:3002",
