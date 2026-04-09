@@ -210,13 +210,7 @@ If the answer is NOT in the retrieved chunks: say you could not find it and dire
 Use phrases like "According to [Document Title]..." rather than stating things as absolute fact.
 If a chunk's scraped_at date appears old, note: "Please verify this on www.dpsa.gov.za as policies may have been updated."
 
-Source citation format (always include at end of response):
-Sources:
-- Document Title (source_url)
-
-IMPORTANT: Do NOT use markdown link syntax [title](url) in the source citation. Write the URL as plain text inside parentheses. Example:
-Sources:
-- Early Retirement Policy (https://www.dpsa.gov.za/documents/Early%20retirement.pdf)
+Do NOT include a "Sources:" section or any URLs in your response. Source links are automatically appended by the system after your response. Simply answer the question using the retrieved content.
 
 ---
 

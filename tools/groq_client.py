@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
 GROQ_VISION_MODEL = os.getenv("GROQ_VISION_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
 SYSTEM_PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "system_prompt.md"
 
@@ -208,6 +208,14 @@ def generate_response(
             ],
         )
     except Exception as e:
+        # Check if it's a rate limit error
+        error_str = str(e)
+        if "rate_limit" in error_str.lower() or "429" in error_str:
+            raise RuntimeError(
+                "The AI service has reached its daily usage limit. "
+                "Please try again later or contact support if this persists. "
+                "For immediate assistance, visit www.dpsa.gov.za or call +27 12 336 1000."
+            )
         raise RuntimeError(f"groq_client.py: Groq API call failed: {e}")
 
     english_response = completion.choices[0].message.content

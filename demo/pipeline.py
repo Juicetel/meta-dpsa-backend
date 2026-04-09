@@ -28,6 +28,7 @@ os.environ.setdefault(
 # ── TOOL IMPORTS ──────────────────────────────────────────────────────────────
 from tools.emoji_parser import parse_emojis
 from tools.lang_detector import detect_language
+from tools.greeting_handler import is_greeting, generate_greeting_response, is_language_selection, generate_language_confirmation
 from tools.translator import translate_text
 from tools.session_store import load_session, save_session
 from tools.retriever import retrieve
@@ -42,6 +43,17 @@ _LOW_CONFIDENCE_CAVEAT = (
     "For a definitive answer, please visit www.dpsa.gov.za "
     "or contact DPSA at info@dpsa.gov.za.*"
 )
+
+
+def _strip_llm_sources(text: str) -> str:
+    """
+    Remove any 'Source:' / 'Sources:' section the LLM appends to its response.
+    The system appends structured source links separately, so LLM citations are
+    redundant and often contain unencoded URLs or wrong formatting.
+    Handles all variants: inline, multi-line, with or without blank line before.
+    """
+    # Remove from any "Source[s]:" (preceded by whitespace/newline) to end of text
+    return re.sub(r'[\n\r]+\s*Sources?\s*:.*', '', text, flags=re.DOTALL | re.IGNORECASE).rstrip()
 
 
 def _strip_hallucinated_urls(text: str, valid_urls: set[str]) -> str:
@@ -149,23 +161,78 @@ def run_pipeline(query: str, session_id: str, images: list | None = None) -> dic
     # ── STEP 2: Process sticker/image -- SKIP (Phase 2) ──────────────────────
     log_step(2, "Process image/sticker", "skipped (Phase 2 -- text only)")
 
-    # ── STEP 3: Detect language ───────────────────────────────────────────────
+    # ── STEP 2b: Check for language selection ─────────────────────────────────
+    is_lang_selection, selected_lang = is_language_selection(enriched_query)
+    if is_lang_selection:
+        log_step(3, "Language selection", f"user selected: {selected_lang}")
+        confirmation = generate_language_confirmation(selected_lang)
+
+        # Save the language selection to the session so future queries use it
+        save_session(session_id, enriched_query, confirmation["response"], selected_lang)
+
+        return {
+            "response": confirmation["response"],
+            "source_links": [],
+            "followups": [],
+            "language": selected_lang,
+            "confidence": 1.0,
+            "steps": steps,
+            "is_language_selection": True
+        }
+
+    # ── STEP 3: Detect language (or use session preference) ───────────────────
     source_language = "en"
     lang_confidence = 1.0
     lang_name = "English"
     lang_is_supported = True
     lang_result = {}
 
-    try:
-        lang_result = detect_language(enriched_query)
-        source_language = lang_result["language"]
-        lang_confidence = lang_result["confidence"]
-        lang_name = lang_result["language_name"]
-        lang_is_supported = lang_result.get("is_supported", False)
-        log_step(3, "Detect language", f"{lang_name} ({source_language}) -- conf: {lang_confidence:.2f}")
-    except Exception as e:
-        log_step(3, "Detect language", f"error: {e} -- defaulting to English")
-        log_error("lang_detector", str(e), {"session_id": session_id})
+    # Check if user has a preferred language saved in their session
+    session_context = load_session(session_id)
+    if session_context.get("language") and session_context["language"] != "en":
+        source_language = session_context["language"]
+        lang_is_supported = True
+        # Map language codes to names for logging
+        lang_names = {
+            "af": "Afrikaans", "zu": "isiZulu", "xh": "isiXhosa",
+            "nso": "Sepedi", "tn": "Setswana", "st": "Sesotho",
+            "ts": "Xitsonga", "ss": "siSwati"
+        }
+        lang_name = lang_names.get(source_language, source_language)
+        log_step(3, "Detect language", f"{lang_name} ({source_language}) from session preference")
+    else:
+        # No preference saved, detect from current query
+        try:
+            lang_result = detect_language(enriched_query)
+            source_language = lang_result["language"]
+            lang_confidence = lang_result["confidence"]
+            lang_name = lang_result["language_name"]
+            lang_is_supported = lang_result.get("is_supported", False)
+            log_step(3, "Detect language", f"{lang_name} ({source_language}) -- conf: {lang_confidence:.2f}")
+        except Exception as e:
+            log_step(3, "Detect language", f"error: {e} -- defaulting to English")
+            log_error("lang_detector", str(e), {"session_id": session_id})
+
+    # ── STEP 3b: Check for greeting ───────────────────────────────────────────
+    if is_greeting(enriched_query):
+        log_step(4, "Greeting detected", "returning welcome message with language options")
+        greeting_result = generate_greeting_response(source_language)
+
+        # Build language selection buttons for frontend (as strings for display)
+        language_options = [
+            opt["name"]  # Just the language name as a string
+            for opt in greeting_result["language_options"]
+        ]
+
+        return {
+            "response": greeting_result["response"],
+            "source_links": [],
+            "followups": language_options,  # Language names as simple strings
+            "language": source_language,
+            "confidence": 1.0,
+            "steps": steps,
+            "is_greeting": True
+        }
 
     # ── STEP 4: Translate to English ──────────────────────────────────────────
     english_query = enriched_query
@@ -181,14 +248,10 @@ def run_pipeline(query: str, session_id: str, images: list | None = None) -> dic
     else:
         log_step(4, "Translate to English", "skipped (already English)")
 
-    # ── STEP 5: Load session context ─────────────────────────────────────────
-    session_context = {"session_id": session_id, "history": [], "language": "en", "turn_count": 0}
-    try:
-        session_context = load_session(session_id)
-        turn = session_context.get("turn_count", 0)
-        log_step(5, "Load session context", f"turn {turn + 1} in this session")
-    except Exception as e:
-        log_step(5, "Load session context", f"error: {e} -- proceeding without context")
+    # ── STEP 5: Load session context (already loaded in Step 3 for language preference) ─────
+    # session_context was already loaded in Step 3, just log it here
+    turn = session_context.get("turn_count", 0)
+    log_step(5, "Load session context", f"turn {turn + 1} in this session")
 
     # ── STEP 6: Retrieve relevant chunks ─────────────────────────────────────
     retrieved_chunks = []
@@ -215,7 +278,7 @@ def run_pipeline(query: str, session_id: str, images: list | None = None) -> dic
     try:
         llm_result = generate_response(english_query, session_context, retrieved_chunks, images=images)
         valid_urls = {c.get("source_url", "") for c in retrieved_chunks if c.get("source_url")}
-        raw_response = _encode_response_urls(llm_result["english_response"])
+        raw_response = _encode_response_urls(_strip_llm_sources(llm_result["english_response"]))
         english_response = _strip_hallucinated_urls(raw_response, valid_urls)
         used_chunk_ids = llm_result["used_chunk_ids"]
         response_confidence = llm_result["response_confidence"]
