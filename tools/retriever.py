@@ -17,7 +17,7 @@ import os
 import urllib.error
 import urllib.request
 from pathlib import Path
-from urllib.parse import quote, urlsplit, urlunsplit
+from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 from dotenv import load_dotenv
 
@@ -111,11 +111,14 @@ def retrieve(query: str, top_k: int = None) -> list:
         # Use direct document URL for citations; fall back to page URL
         source_url = item.get("source_url") or item.get("source_page_url", "")
         # URL-encode spaces and special chars in the path (e.g. "Annual Report.pdf")
+        # First unquote to avoid double-encoding, then re-encode properly
         if source_url:
             parts = urlsplit(source_url)
+            # Unquote first to handle already-encoded URLs, then re-encode
+            decoded_path = unquote(parts.path)
             source_url = urlunsplit((
                 parts.scheme, parts.netloc,
-                quote(parts.path, safe="/"),
+                quote(decoded_path, safe="/"),
                 parts.query, parts.fragment,
             ))
 
