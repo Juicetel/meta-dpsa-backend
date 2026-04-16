@@ -13,7 +13,7 @@ services:
 
       # Non-secret defaults safe to commit
       - key: GROQ_MODEL
-        value: llama-3.3-70b-versatile
+        value: meta-llama/llama-4-scout-17b-16e-instruct
       - key: AWS_SEARCH_URL
         value: http://13.247.229.2:8000/api/documents/search/
       - key: SESSION_STORE_BACKEND
