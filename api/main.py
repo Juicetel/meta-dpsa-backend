@@ -26,6 +26,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from demo.pipeline import run_pipeline
+from tools.groq_client import GROQ_MODEL, GROQ_VISION_MODEL
 
 # ---------------------------------------------------------------------------
 # App
@@ -76,7 +77,12 @@ class NewSessionResponse(BaseModel):
 @app.get("/health")
 def health():
     """Liveness check — returns 200 when the API is up."""
-    return {"status": "ok", "service": "Batho Pele AI"}
+    return {
+        "status": "ok",
+        "service": "Batho Pele AI",
+        "text_model": GROQ_MODEL,
+        "vision_model": GROQ_VISION_MODEL,
+    }
 
 
 @app.post("/session/new", response_model=NewSessionResponse)
