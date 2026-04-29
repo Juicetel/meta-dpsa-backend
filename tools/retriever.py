@@ -93,14 +93,18 @@ def retrieve(query: str, top_k: int = None) -> list:
 
     chunks = []
     for i, item in enumerate(raw_results):
-        # Rank-based similarity score: 1.0 for first result, decreasing by 0.05 per rank
-        raw_score: float = 1.0 - i * 0.05
-        clamped: float = raw_score if raw_score >= 0.60 else 0.60
-        rank_score: float = int(clamped * 100) / 100.0
+        # Real cosine similarity from the API; fall back to rank-based if missing
+        if "similarity" in item:
+            similarity_score = round(float(item["similarity"]), 3)
+        else:
+            raw_score: float = 1.0 - i * 0.05
+            clamped: float = raw_score if raw_score >= 0.60 else 0.60
+            similarity_score = int(clamped * 100) / 100.0
 
         # Clean display title -- strip file extensions
         raw_title = (
-            item.get("document_title")
+            item.get("title")
+            or item.get("document_title")
             or item.get("section_title")
             or "DPSA Document"
         )
@@ -108,13 +112,17 @@ def retrieve(query: str, top_k: int = None) -> list:
             raw_title = raw_title.replace(ext, "")
         source_title = raw_title.strip() or "DPSA Document"
 
-        # Use direct document URL for citations; fall back to page URL
-        source_url = item.get("source_url") or item.get("source_page_url", "")
+        # Pick URL based on item type; new schema uses page_url for html, source_url for document
+        item_type = item.get("type", "")
+        if item_type == "html":
+            source_url = item.get("page_url") or item.get("source_url", "")
+        else:
+            source_url = item.get("source_url") or item.get("page_url") or item.get("source_page_url", "")
+
         # URL-encode spaces and special chars in the path (e.g. "Annual Report.pdf")
         # First unquote to avoid double-encoding, then re-encode properly
         if source_url:
             parts = urlsplit(source_url)
-            # Unquote first to handle already-encoded URLs, then re-encode
             decoded_path = unquote(parts.path)
             source_url = urlunsplit((
                 parts.scheme, parts.netloc,
@@ -122,14 +130,17 @@ def retrieve(query: str, top_k: int = None) -> list:
                 parts.query, parts.fragment,
             ))
 
-        # Infer doc_type from URL extension
-        url_lower = source_url.lower()
-        if url_lower.endswith(".pdf"):
-            doc_type = "pdf"
-        elif url_lower.endswith((".doc", ".docx")):
-            doc_type = "doc"
-        else:
+        # Infer doc_type from item type or URL extension
+        if item_type == "html":
             doc_type = "webpage"
+        else:
+            url_lower = source_url.lower()
+            if url_lower.endswith(".pdf"):
+                doc_type = "pdf"
+            elif url_lower.endswith((".doc", ".docx")):
+                doc_type = "doc"
+            else:
+                doc_type = "webpage"
 
         chunks.append({
             "id": str(item.get("id", f"chunk_{i}")),
@@ -138,7 +149,7 @@ def retrieve(query: str, top_k: int = None) -> list:
             "source_title": source_title,
             "category": "DPSA Document",
             "doc_type": doc_type,
-            "similarity_score": rank_score,
+            "similarity_score": similarity_score,
         })
 
     return chunks
