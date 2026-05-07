@@ -36,13 +36,7 @@ from tools.groq_client import generate_response     # SWAP -> tools.llama_client
 from tools.followup_generator import generate_followups
 from tools.logger import log_interaction, log_escalation, log_error
 
-LOW_CONFIDENCE_THRESHOLD = 0.5
-
-_LOW_CONFIDENCE_CAVEAT = (
-    "\n\n*Note: I am not fully confident this fully answers your question. "
-    "For a definitive answer, please visit www.dpsa.gov.za "
-    "or contact DPSA at info@dpsa.gov.za.*"
-)
+LOW_CONFIDENCE_THRESHOLD = 0.75
 
 
 def _strip_llm_sources(text: str) -> str:
@@ -292,15 +286,18 @@ def run_pipeline(query: str, session_id: str, images: list | None = None) -> dic
         )
 
     # ── STEP 8: Grounding check ───────────────────────────────────────────────
+    # Government-grade rule: refuse below threshold instead of softening.
     if response_confidence < LOW_CONFIDENCE_THRESHOLD:
         log_step(
             8, "Grounding check",
-            f"low confidence ({response_confidence:.2f}) -- adding caveat"
+            f"low confidence ({response_confidence:.2f}) < {LOW_CONFIDENCE_THRESHOLD} -- escalating"
         )
-        grounded_response = english_response + _LOW_CONFIDENCE_CAVEAT
-    else:
-        log_step(8, "Grounding check", "passed")
-        grounded_response = english_response
+        return _escalation(
+            session_id, enriched_query, source_language,
+            len(retrieved_chunks), "low_confidence", steps
+        )
+    log_step(8, "Grounding check", f"passed ({response_confidence:.2f})")
+    grounded_response = english_response
 
     # ── STEP 9: Translate response back to user language ─────────────────────
     final_response = grounded_response
