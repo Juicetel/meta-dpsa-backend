@@ -7,9 +7,16 @@ WAT Role: Tools layer -- deterministic execution only.
 Called by: query_handler.md (Step 10), demo/pipeline.py (Step 10)
 
 Implementation: Template-based (no LLM required).
-Two-layer selection:
-  Layer 1: Dominant category from retrieved_chunks (benefits / procedures / policies / employment)
-  Layer 2: Keyword refinement within category to pick the most relevant template set.
+Selection:
+  Position 1 always asks the user to narrow what they want to know about
+  the matched topic (e.g. "What specifically do you want to know about
+  annual leave?"). Positions 2-3 are the two most relevant template
+  questions for that topic.
+
+  Topic detection searches every category's keyword_trigger for the best
+  overlap with query+response keywords. The chunk-derived `category` is
+  only a tiebreaker, because the AWS retriever currently labels every
+  chunk as "DPSA Document" (so dominant-category isn't a useful gate).
 
 NOTE: Follow-up questions are generated in English internally and translated
 by the calling workflow if the user's language is not English.
@@ -21,9 +28,25 @@ from collections import Counter
 
 MAX_FOLLOWUPS = int(os.getenv("MAX_FOLLOWUPS", "3"))
 
-# Always offered as the first follow-up so users can narrow a policy answer to
-# a specific year or period when multiple versions of a policy may exist.
-TIMELINE_FOLLOWUP = "Are you looking for policies from a specific year or time period?"
+# Topic labels used in the "What specifically..." follow-up so it reads
+# naturally for each topic (e.g. trigger "z83" -> "Form Z83").
+_TOPIC_LABELS = {
+    "z83": "Form Z83",
+    "regulation": "Public Service Regulations",
+    "performance": "performance management",
+    "appointment": "appointments and recruitment",
+    "contact": "DPSA contact details",
+}
+
+# Used when no specific trigger matched but the chunk category is known.
+_CATEGORY_TOPIC_LABELS = {
+    "benefits": "leave and benefits",
+    "procedures": "DPSA procedures",
+    "policies": "DPSA policies and regulations",
+    "employment": "public service employment",
+}
+
+_FALLBACK_TOPIC_LABEL = "this topic"
 
 # ── STOP WORDS ────────────────────────────────────────────────────────────────
 _STOP_WORDS = {
@@ -167,10 +190,10 @@ def generate_followups(query: str, response: str, retrieved_chunks: list) -> lis
 
     category = _dominant_category(retrieved_chunks)
     keywords = _extract_keywords(query + " " + response)
-    template_set = _select_template_set(category, keywords)
+    topic_label, template_set = _select_template_set(category, keywords)
 
-    combined = [TIMELINE_FOLLOWUP] + [q for q in template_set if q != TIMELINE_FOLLOWUP]
-    return combined[:MAX_FOLLOWUPS]
+    specificity_question = f"What specifically do you want to know about {topic_label}?"
+    return [specificity_question] + list(template_set[: max(MAX_FOLLOWUPS - 1, 0)])
 
 
 def _extract_keywords(text: str) -> set:
@@ -190,33 +213,48 @@ def _dominant_category(chunks: list) -> str:
     return most_common if most_common in _TEMPLATES else "default"
 
 
-def _select_template_set(category: str, keywords: set) -> list:
+def _select_template_set(category: str, keywords: set) -> tuple:
     """
-    Within a category's template bank, find the keyword_trigger with
-    maximum overlap with query+response keywords. Return its template list.
-    Falls back to the category "default" if no trigger matches.
+    Search every category's template bank for the keyword_trigger with the
+    highest overlap with query+response keywords. Returns (topic_label,
+    templates). The chunk-derived `category` is only used as a tiebreaker on
+    equal overlap, since the AWS retriever currently labels every chunk as
+    "DPSA Document" (so the dominant category isn't a reliable signal).
+    Falls back to the matching category's "default" templates on no match.
     """
-    category_bank = _TEMPLATES.get(category, _TEMPLATES["default"])
-
-    if isinstance(category_bank, list):
-        return category_bank
-
-    best_trigger = None
     best_overlap = 0
+    best_in_dominant = False
+    best_trigger = None
+    best_templates = None
 
-    for trigger, templates in category_bank.items():
-        if trigger == "default":
+    for cat, bank in _TEMPLATES.items():
+        if isinstance(bank, list):
             continue
-        trigger_tokens = set(trigger.lower().split())
-        overlap = len(keywords & trigger_tokens)
-        if overlap > best_overlap:
-            best_overlap = overlap
-            best_trigger = trigger
+        for trigger, templates in bank.items():
+            if trigger == "default":
+                continue
+            trigger_tokens = set(trigger.lower().split())
+            overlap = len(keywords & trigger_tokens)
+            if overlap == 0:
+                continue
+            in_dominant = cat == category
+            if (overlap, in_dominant) > (best_overlap, best_in_dominant):
+                best_overlap = overlap
+                best_in_dominant = in_dominant
+                best_trigger = trigger
+                best_templates = templates
 
-    if best_trigger and best_overlap > 0:
-        return category_bank[best_trigger]
+    if best_trigger and best_templates is not None:
+        topic_label = _TOPIC_LABELS.get(best_trigger, best_trigger)
+        return (topic_label, best_templates)
 
-    return category_bank.get("default", _TEMPLATES["default"])
+    # No keyword match anywhere -- use the dominant category's default templates.
+    category_bank = _TEMPLATES.get(category, _TEMPLATES["default"])
+    if isinstance(category_bank, list):
+        return (_FALLBACK_TOPIC_LABEL, category_bank)
+
+    fallback_label = _CATEGORY_TOPIC_LABELS.get(category, _FALLBACK_TOPIC_LABEL)
+    return (fallback_label, category_bank.get("default", _TEMPLATES["default"]))
 
 
 if __name__ == "__main__":
