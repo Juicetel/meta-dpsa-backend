@@ -115,6 +115,32 @@ def log_reindex(
     _write_log("reindex", record)
 
 
+def log_feedback(
+    session_id: str,
+    message_id: str,
+    rating: str,
+    comment: str | None = None,
+):
+    """
+    Record a user thumbs up/down on a specific bot response.
+
+    The frontend NuxtHub SQLite is the source of truth for ratings (it
+    already has the full message + rating row). This log mirrors each
+    feedback event for backend observability and as raw input for a future
+    learning loop that biases retrieval toward highly-rated past answers.
+    """
+    record = {
+        "log_id": str(uuid.uuid4()),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "event_type": "feedback",
+        "session_id": session_id,
+        "message_id": message_id,
+        "rating": rating,
+        "comment": comment,
+    }
+    _write_log("feedback", record)
+
+
 def log_error(tool_name: str, error_message: str, context: dict = None):
     """
     Log a tool-level error for debugging and self-improvement tracking.

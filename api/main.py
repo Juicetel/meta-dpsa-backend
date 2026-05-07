@@ -16,6 +16,7 @@ Run with:
 import sys
 import uuid
 from pathlib import Path
+from typing import Literal
 
 # Ensure project root is on the path so tool imports work
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -27,6 +28,7 @@ from pydantic import BaseModel
 
 from demo.pipeline import run_pipeline
 from tools.groq_client import GROQ_MODEL, GROQ_VISION_MODEL
+from tools.logger import log_feedback
 
 # ---------------------------------------------------------------------------
 # App
@@ -70,6 +72,12 @@ class ChatRequest(BaseModel):
 class NewSessionResponse(BaseModel):
     session_id: str
 
+class FeedbackRequest(BaseModel):
+    message_id: str
+    session_id: str
+    rating: Literal["up", "down"]
+    comment: str | None = None
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -111,3 +119,22 @@ def chat(req: ChatRequest):
     images = [{"base64": img.base64, "media_type": img.media_type} for img in req.images]
     result = run_pipeline(query, req.session_id, images=images)
     return result
+
+
+@app.post("/feedback")
+def feedback(req: FeedbackRequest):
+    """
+    Record a thumbs up/down on a specific bot response.
+
+    The frontend SQLite stores the rating against the message row as the
+    source of truth. This endpoint mirrors each event into the backend's
+    NDJSON log for observability and as raw input for a future learning loop.
+    """
+    comment = (req.comment or "").strip() or None
+    log_feedback(
+        session_id=req.session_id,
+        message_id=req.message_id,
+        rating=req.rating,
+        comment=comment,
+    )
+    return {"status": "ok"}
