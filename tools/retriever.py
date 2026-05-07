@@ -142,6 +142,18 @@ def retrieve(query: str, top_k: int = None) -> list:
             else:
                 doc_type = "webpage"
 
+        # Capture the document's last-updated date so the LLM can prefer the
+        # most recent version of a policy when multiple versions are retrieved.
+        # AWS schema (aws_data_sync.md) lists scraped_at; tolerate common aliases.
+        scraped_at = (
+            item.get("scraped_at")
+            or item.get("last_updated")
+            or item.get("updated_at")
+            or item.get("created_at")
+            or item.get("date")
+            or ""
+        )
+
         chunks.append({
             "id": str(item.get("id", f"chunk_{i}")),
             "content": item.get("text", ""),
@@ -150,6 +162,7 @@ def retrieve(query: str, top_k: int = None) -> list:
             "category": "DPSA Document",
             "doc_type": doc_type,
             "similarity_score": similarity_score,
+            "scraped_at": scraped_at,
         })
 
     return chunks

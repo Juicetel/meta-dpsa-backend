@@ -58,7 +58,8 @@ def _load_system_prompt() -> str:
 def _format_chunks_as_context(retrieved_chunks: list) -> str:
     """
     Format retrieved chunks into a numbered context block for the user message.
-    Structured so the model can accurately cite sources.
+    Structured so the model can accurately cite sources and prefer the most
+    recent version of a policy when multiple versions appear.
     """
     if not retrieved_chunks:
         return "No relevant documents were found in the knowledge base."
@@ -71,6 +72,8 @@ def _format_chunks_as_context(retrieved_chunks: list) -> str:
         )
         lines.append(f"URL: {chunk.get('source_url', 'N/A')}")
         lines.append(f"Category: {chunk.get('category', 'N/A')}")
+        last_updated = chunk.get("scraped_at") or "unknown"
+        lines.append(f"Last updated: {last_updated}")
         lines.append("---")
         lines.append(chunk.get("content", ""))
         lines.append("")

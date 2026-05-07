@@ -21,6 +21,10 @@ from collections import Counter
 
 MAX_FOLLOWUPS = int(os.getenv("MAX_FOLLOWUPS", "3"))
 
+# Always offered as the first follow-up so users can narrow a policy answer to
+# a specific year or period when multiple versions of a policy may exist.
+TIMELINE_FOLLOWUP = "Are you looking for policies from a specific year or time period?"
+
 # ── STOP WORDS ────────────────────────────────────────────────────────────────
 _STOP_WORDS = {
     "a", "an", "the", "is", "are", "was", "were", "i", "me", "my",
@@ -165,7 +169,8 @@ def generate_followups(query: str, response: str, retrieved_chunks: list) -> lis
     keywords = _extract_keywords(query + " " + response)
     template_set = _select_template_set(category, keywords)
 
-    return template_set[:MAX_FOLLOWUPS]
+    combined = [TIMELINE_FOLLOWUP] + [q for q in template_set if q != TIMELINE_FOLLOWUP]
+    return combined[:MAX_FOLLOWUPS]
 
 
 def _extract_keywords(text: str) -> set:
