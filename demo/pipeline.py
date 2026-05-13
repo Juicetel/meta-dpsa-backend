@@ -83,6 +83,22 @@ def _strip_hallucinated_urls(text: str, valid_urls: set[str]) -> str:
     return text
 
 
+def _normalize_url(url: str) -> str:
+    """
+    Canonicalize a URL for dedup: lowercase scheme/host, strip trailing slash
+    on the path, drop the fragment. Leave path case alone (some servers are
+    case-sensitive on the path). Used so 'https://Site/x' and 'https://site/x/'
+    don't both end up in the Sources block as separate entries.
+    """
+    if not url:
+        return ""
+    parts = urlsplit(url)
+    scheme = parts.scheme.lower()
+    netloc = parts.netloc.lower()
+    path = parts.path.rstrip("/") or "/"
+    return urlunsplit((scheme, netloc, path, parts.query, ""))
+
+
 def _encode_response_urls(text: str) -> str:
     """
     URL-encode spaces in document URLs embedded in the LLM response.
@@ -353,13 +369,17 @@ def run_pipeline(query: str, session_id: str, images: list | None = None) -> dic
         log_step(12, "Log interaction", f"error: {e}")
 
     # ── BUILD SOURCE LINKS ────────────────────────────────────────────────────
+    # Dedup by normalised URL so the same DPSA page (with trailing slash,
+    # different case, or fragment variations) doesn't appear multiple times
+    # in the user-facing Sources block.
     source_links = []
-    seen_urls = set()
+    seen_keys = set()
     for chunk in retrieved_chunks:
         if chunk.get("id", "") in used_chunk_ids:
             url = chunk.get("source_url", "")
-            if url and url not in seen_urls:
-                seen_urls.add(url)
+            key = _normalize_url(url)
+            if key and key not in seen_keys:
+                seen_keys.add(key)
                 source_links.append({
                     "title": chunk.get("source_title", ""),
                     "url": url,

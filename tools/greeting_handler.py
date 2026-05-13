@@ -135,11 +135,31 @@ def generate_greeting_response(detected_language: str = "en") -> dict:
     # Use English as fallback if detected language not supported
     lang = detected_language if detected_language in greetings else "en"
 
-    # Build greeting message (just greeting + language selection prompt)
+    # Build greeting message. English greeters get the full capability list
+    # plus a privacy notice so they can self-select the right topic upfront.
+    # Non-English greeters get the short welcome -- they'll choose a language
+    # next, and the confirmation reply already prompts them for their question.
     greeting_text = greetings[lang]
     prompt_text = language_prompt[lang]
 
-    full_response = f"{greeting_text}{prompt_text}"
+    if lang == "en":
+        capability_text = (
+            "\n\nI can help you find information on:\n"
+            "- Leave entitlements and HR policies\n"
+            "- Form Z83 and other application forms\n"
+            "- PAIA requests and forms\n"
+            "- Public Service Regulations\n"
+            "- Vacancy circulars and how to apply\n"
+            "- DPSA contact information"
+        )
+        privacy_text = (
+            "\n\nYou are interacting with an AI system. Please do not share "
+            "personal or sensitive data. For matters requiring your personal "
+            "details, please contact your departmental HR unit directly."
+        )
+        full_response = f"{greeting_text}{capability_text}{privacy_text}{prompt_text}"
+    else:
+        full_response = f"{greeting_text}{prompt_text}"
 
     # Build language options list
     language_options = []
