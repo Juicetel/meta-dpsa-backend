@@ -1,5 +1,66 @@
 <script setup lang="ts">
+
 import { LazyModalConfirm } from '#components'
+import type { NavigationMenuItem } from '@nuxt/ui'
+
+const items2: NavigationMenuItem[][] = [[{
+  label: 'Home',
+  icon: 'i-solar:chat-round-dots-linear',
+  to: 'https://www.dpsa.gov.za/',
+  target: '_blank',
+},
+{
+  label: 'About Us',
+  icon: 'i-material-symbols-light:inbox-text-outline',
+  to: 'https://www.dpsa.gov.za/about-us/',
+  target: '_blank',
+},
+{
+  label: 'Legislation',
+  icon: 'i-lineicons:books-2',
+  to: 'https://www.dpsa.gov.za/legislation/',
+  target: '_blank',
+},
+{
+  label: 'PAIA',
+  icon: 'i-lineicons:books-2',
+  to: 'https://www.dpsa.gov.za/paia/',
+  target: '_blank',
+},
+{
+  label: 'Policy Updates',
+  icon: 'i-lineicons:books-2',
+  to: 'https://www.dpsa.gov.za/policy-updates/',
+  target: '_blank',
+},
+{
+  label: 'Resource Center',
+  icon: 'i-material-symbols-light:inbox-text-outline',
+  to: 'https://www.dpsa.gov.za/resource_centre/',
+  target: '_blank',
+},
+{
+  label: 'Newsroom',
+  icon: 'i-lineicons:books-2',
+  to: 'https://www.dpsa.gov.za/newsroom/',
+  target: '_blank',
+},
+{
+  label: 'Contact Us',
+  icon: 'i-lineicons:books-2',
+  to: 'https://www.dpsa.gov.za/contact-us/',
+  target: '_blank',
+},
+{
+  label: 'FAQ',
+  icon: 'i-lineicons:books-2',
+  to: 'https://www.dpsa.gov.za/faq/',
+  target: '_blank',
+}
+]]
+
+
+
 
 const route = useRoute()
 const toast = useToast()
@@ -70,7 +131,9 @@ async function deleteChat(id: string) {
   toast.add({
     title: 'Chat deleted',
     description: 'Your chat has been deleted',
-    icon: 'i-lucide-trash'
+    icon: 'i-lucide-trash',
+    ui: { icon: 'text-[#006532]' },
+    progress: { ui: { indicator: 'bg-[#006532]' } }
   })
 
   refreshChats()
@@ -113,11 +176,10 @@ defineShortcuts({
         <div class="flex flex-col gap-1.5">
           <UButton
             v-bind="collapsed ? { icon: 'i-lucide-plus' } : { label: 'New chat' }"
-            variant="soft"
             block
             to="/"
             @click="open = false"
-            class="bg-[#006532] text-white"
+            class="bg-[#006532] text-white border border-[#006532] hover:bg-[#005c33] focus:bg-transparent focus:text-[#006532] focus:outline-none focus-visible:bg-transparent focus-visible:text-[#006532] focus-visible:outline-none active:bg-transparent active:text-[#006532]"
           />
 
           <template v-if="collapsed">
@@ -146,20 +208,17 @@ defineShortcuts({
             </div>
           </template>
         </UNavigationMenu>
+        
+        <h5 v-if="!collapsed" class="text-black dark:text-white">Features</h5>
+        <UNavigationMenu
+        :collapsed="collapsed"
+        :items="items2"
+        orientation="vertical"
+        />
+
       </template>
 
-      <template #footer="{ collapsed }">
-        <UserMenu v-if="loggedIn" :collapsed="collapsed" />
-        <UButton
-          v-else
-          :label="collapsed ? '' : 'Help Center'"
-          icon="i-lucide:folder"
-          color="neutral"
-          variant="ghost"
-          class="w-full"
-          @click="openInPopup('/auth/github')"
-        />
-      </template>
+     
     </UDashboardSidebar>
 
     <UDashboardSearch

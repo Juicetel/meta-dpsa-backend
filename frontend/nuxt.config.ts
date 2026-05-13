@@ -41,11 +41,15 @@ export default defineNuxtConfig({
 
   hub: {
     db: 'sqlite',
-    blob: true
+    blob: false
   },
 
   runtimeConfig: {
-    dpsaApiUrl: process.env.DPSA_API_URL || 'http://localhost:8000'
+    public: {
+      apiBase: ''
+    },
+
+
   },
 
   vite: {
@@ -58,11 +62,6 @@ export default defineNuxtConfig({
         'motion-v'
       ]
     }
-  },
-
-  runtimeConfig: {
-    // Private — only available server-side (Nitro)
-    dpsaApiUrl: process.env.DPSA_API_URL || 'http://localhost:8000'
   },
 
   eslint: {

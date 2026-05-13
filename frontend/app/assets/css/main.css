@@ -3,6 +3,18 @@
 
 @theme static {
   /* --font-sans: 'Public Sans', sans-serif; */
+
+  --color-dpsa-50: #e6f3ec;
+  --color-dpsa-100: #ccebd8;
+  --color-dpsa-200: #99d4b1;
+  --color-dpsa-300: #66bd8a;
+  --color-dpsa-400: #33a663;
+  --color-dpsa-500: #008a45;
+  --color-dpsa-600: #00703e;
+  --color-dpsa-700: #006532;
+  --color-dpsa-800: #005c33;
+  --color-dpsa-900: #004526;
+  --color-dpsa-950: #002e19;
 }
 
 @layer base {

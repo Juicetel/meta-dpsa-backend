@@ -17,8 +17,8 @@ useHead({
   }
 })
 
-const title = 'Nuxt AI Chatbot template'
-const description = 'A full-featured, hackable Nuxt AI chatbot template made with Nuxt UI.'
+const title = 'Batho Pele - DPSA AI Chatbot'
+const description = 'A full-featured chatbot built directly for DPSA'
 
 useSeoMeta({
   title,
