@@ -13,6 +13,7 @@ Run with:
   uvicorn api.main:app --reload --port 8000
 """
 
+import os
 import sys
 import uuid
 from pathlib import Path
@@ -40,17 +41,17 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Allow the Nuxt dev server and any deployed frontend origin
+# Allowed origins come from the ALLOWED_ORIGINS env var (comma-separated).
+# Falls back to the local Nuxt dev server only — production MUST set this.
+_allowed_origins_env = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000,http://127.0.0.1:3000",
+)
+ALLOWED_ORIGINS = [o.strip() for o in _allowed_origins_env.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:3002",
-        "http://127.0.0.1:3000",
-        "https://dpsa-chat.pages.dev",
-        "https://meta-dpsa-frontend-2.vercel.app",
-    ],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

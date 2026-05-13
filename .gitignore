@@ -12,6 +12,11 @@ google-credentials.json
 *.pem
 *.key
 
+# Production deliverable — built/assembled, not source
+DPSA-Chatbot-Production/
+backend/wheelhouse/
+backend/venv/
+
 # Temporary processing files
 .tmp/
 

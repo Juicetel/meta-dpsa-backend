@@ -46,10 +46,10 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: ''
-    },
-
-
+      // Default points at the on-server FastAPI bound to port 8080.
+      // Override at runtime via NUXT_PUBLIC_API_BASE if needed.
+      apiBase: 'http://localhost:8080'
+    }
   },
 
   vite: {
