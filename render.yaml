@@ -16,6 +16,12 @@ services:
         value: meta-llama/llama-4-scout-17b-16e-instruct
       - key: AWS_SEARCH_URL
         value: http://13.247.229.2:8000/api/documents/search/
+      # Dedicated HTML-pages endpoint (REQUESTED, see workflows/aws_data_sync.md §8).
+      # Set in Render dashboard once AWS team provides the URL. Empty -> bot
+      # uses only the combined-index endpoint above. sync:false keeps the
+      # value out of git so the URL can land without a commit.
+      - key: AWS_WEBPAGES_SEARCH_URL
+        sync: false
       - key: SESSION_STORE_BACKEND
         value: memory
       - key: LOG_LEVEL

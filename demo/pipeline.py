@@ -31,7 +31,7 @@ from tools.lang_detector import detect_language
 from tools.greeting_handler import is_greeting, generate_greeting_response, is_language_selection, generate_language_confirmation
 from tools.translator import translate_text
 from tools.session_store import load_session, save_session
-from tools.retriever import retrieve
+from tools.retriever import retrieve, retrieve_webpages
 from tools.groq_client import generate_response     # SWAP -> tools.llama_client when EC2 ready
 from tools.followup_generator import generate_followups
 from tools.logger import log_interaction, log_escalation, log_error
@@ -264,12 +264,38 @@ def run_pipeline(query: str, session_id: str, images: list | None = None) -> dic
     log_step(5, "Load session context", f"turn {turn + 1} in this session")
 
     # ── STEP 6: Retrieve relevant chunks ─────────────────────────────────────
+    # Query both AWS endpoints in series: the combined PDF+HTML index and
+    # the dedicated HTML-pages index (when configured). Merge, dedupe by
+    # normalised URL, and take top-5 by similarity. The webpages retriever
+    # is a no-op when AWS_WEBPAGES_SEARCH_URL is unset (see §8 of
+    # workflows/aws_data_sync.md), so the bot keeps working today.
     retrieved_chunks = []
     try:
-        retrieved_chunks = retrieve(english_query, top_k=5)
+        pdf_chunks = retrieve(english_query, top_k=5)
+        try:
+            web_chunks = retrieve_webpages(english_query, top_k=5)
+        except Exception as e:
+            log_error("retrieve_webpages", str(e), {"session_id": session_id})
+            web_chunks = []
+
+        all_chunks = pdf_chunks + web_chunks
+        seen_keys = set()
+        for c in sorted(all_chunks, key=lambda x: x.get("similarity_score", 0), reverse=True):
+            key = _normalize_url(c.get("source_url", ""))
+            if key and key not in seen_keys:
+                seen_keys.add(key)
+                retrieved_chunks.append(c)
+            if len(retrieved_chunks) >= 5:
+                break
+
         if retrieved_chunks:
             top_score = retrieved_chunks[0]["similarity_score"]
-            log_step(6, "Retrieve chunks", f"{len(retrieved_chunks)} chunks found -- top score: {top_score:.3f}")
+            pdf_count = sum(1 for c in retrieved_chunks if c.get("category") == "DPSA Document")
+            web_count = sum(1 for c in retrieved_chunks if c.get("category") == "DPSA Webpage")
+            log_step(
+                6, "Retrieve chunks",
+                f"PDF: {pdf_count}, Web: {web_count} (top {top_score:.3f})"
+            )
         else:
             log_step(6, "Retrieve chunks", "no results -- escalating")
             return _escalation(

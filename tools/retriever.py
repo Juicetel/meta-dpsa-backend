@@ -27,34 +27,20 @@ AWS_SEARCH_URL = os.getenv(
     "AWS_SEARCH_URL",
     "http://13.247.229.2:8000/api/documents/search/",
 )
+# Second AWS endpoint dedicated to www.dpsa.gov.za HTML pages
+# (requested 2026-05-13, see workflows/aws_data_sync.md §8). Empty by
+# default so the bot degrades cleanly to the combined-index endpoint
+# until AWS delivers. Set in Render dashboard once the URL is known.
+AWS_WEBPAGES_SEARCH_URL = os.getenv("AWS_WEBPAGES_SEARCH_URL", "")
 MAX_RETRIEVAL_CHUNKS = int(os.getenv("MAX_RETRIEVAL_CHUNKS", "5"))
 REQUEST_TIMEOUT = int(os.getenv("RETRIEVER_TIMEOUT", "10"))
 
 
-def retrieve(query: str, top_k: int = None) -> list:
+def _retrieve_from(query: str, top_k: int, url: str, default_category: str) -> list:
     """
-    Call the AWS semantic search API and return top-k chunks.
-
-    Args:
-        query:  English-language query text.
-        top_k:  Number of chunks to return. Defaults to MAX_RETRIEVAL_CHUNKS.
-
-    Returns:
-        List of chunk dicts ordered by relevance (ranked by API), each:
-        {
-            "id":               str,
-            "content":          str,
-            "source_url":       str,
-            "source_title":     str,
-            "category":         str,
-            "doc_type":         str,   # "pdf" | "doc" | "webpage"
-            "similarity_score": float, # rank-based estimate 0.60 - 1.00
-        }
-        Returns empty list if no results found.
-
-    Raises:
-        RuntimeError: On HTTP error or unreachable AWS endpoint.
-        ValueError:   If query is None.
+    Internal: POST {query, top_k} to an AWS search endpoint and convert
+    the response into the bot's chunk dict shape. Used by both retrieve()
+    (combined PDF+HTML index) and retrieve_webpages() (HTML-only index).
     """
     if query is None:
         raise ValueError("query cannot be None.")
@@ -65,7 +51,7 @@ def retrieve(query: str, top_k: int = None) -> list:
 
     payload = json.dumps({"query": query, "top_k": k}).encode("utf-8")
     req = urllib.request.Request(
-        AWS_SEARCH_URL,
+        url,
         data=payload,
         headers={"Content-Type": "application/json"},
         method="POST",
@@ -76,15 +62,15 @@ def retrieve(query: str, top_k: int = None) -> list:
             data = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         raise RuntimeError(
-            f"retriever.py: AWS API returned HTTP {e.code}: {e.reason}"
+            f"retriever.py: AWS API at {url} returned HTTP {e.code}: {e.reason}"
         )
     except urllib.error.URLError as e:
         raise RuntimeError(
-            f"retriever.py: Cannot reach AWS API at {AWS_SEARCH_URL}: {e.reason}"
+            f"retriever.py: Cannot reach AWS API at {url}: {e.reason}"
         )
     except json.JSONDecodeError as e:
         raise RuntimeError(
-            f"retriever.py: Invalid JSON from AWS API: {e}"
+            f"retriever.py: Invalid JSON from AWS API at {url}: {e}"
         )
 
     raw_results = data.get("results", [])
@@ -159,13 +145,50 @@ def retrieve(query: str, top_k: int = None) -> list:
             "content": item.get("text", ""),
             "source_url": source_url,
             "source_title": source_title,
-            "category": "DPSA Document",
+            "category": default_category,
             "doc_type": doc_type,
             "similarity_score": similarity_score,
             "scraped_at": scraped_at,
         })
 
     return chunks
+
+
+def retrieve(query: str, top_k: int = None) -> list:
+    """
+    Retrieve from the combined PDFs + HTML index (existing AWS endpoint
+    at AWS_SEARCH_URL). Returns top-k chunks ordered by similarity.
+
+    Chunks are tagged `category="DPSA Document"`. See _retrieve_from for
+    the full chunk dict shape.
+
+    Raises:
+        RuntimeError: On HTTP error or unreachable AWS endpoint.
+        ValueError:   If query is None.
+    """
+    return _retrieve_from(query, top_k, AWS_SEARCH_URL, "DPSA Document")
+
+
+def retrieve_webpages(query: str, top_k: int = None) -> list:
+    """
+    Retrieve from the dedicated www.dpsa.gov.za HTML index (second AWS
+    endpoint at AWS_WEBPAGES_SEARCH_URL, requested 2026-05-13 per
+    workflows/aws_data_sync.md §8).
+
+    Returns [] when AWS_WEBPAGES_SEARCH_URL is unset so the bot degrades
+    cleanly to the combined-index retriever before AWS delivers.
+
+    Chunks are tagged `category="DPSA Webpage"` so the LLM can see they
+    came from the dedicated HTML source.
+
+    Raises:
+        RuntimeError: On HTTP error or unreachable endpoint when the URL
+                      IS set. (Empty URL is silent and returns [].)
+        ValueError:   If query is None.
+    """
+    if not AWS_WEBPAGES_SEARCH_URL:
+        return []
+    return _retrieve_from(query, top_k, AWS_WEBPAGES_SEARCH_URL, "DPSA Webpage")
 
 
 if __name__ == "__main__":
