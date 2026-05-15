@@ -135,6 +135,65 @@ Any changes to the data schema (Section 2) or trigger payload format (Section 3)
 
 ---
 
+## 8. HTML Webpages Index (Second Knowledge Base)
+
+**Status:** REQUESTED 2026-05-13 — awaiting AWS team confirmation.
+
+The existing index at `/api/documents/search/` combines PDFs and HTML
+pages but under-serves HTML queries (see Known Issues entry dated
+2026-05-13). To address this, the AWS team is requested to stand up a
+SECOND endpoint dedicated to HTML pages from www.dpsa.gov.za.
+
+### Scope
+- Full crawl of www.dpsa.gov.za (subject to robots.txt).
+- All publicly-accessible HTML pages, including: mandate / vision /
+  leadership / contact / address / PAIA / Z83 / vacancy circulars index /
+  GEHS overview / anti-corruption / regulations / PMDS / grievance /
+  PSC referral / branch directory / Batho Pele principles /
+  organogram / services A-Z.
+- Refresh cadence: weekly, or on dpsa.gov.za sitemap change.
+
+### Endpoint specification
+- **URL:** `http://<aws-host>:8000/api/webpages/search/` (AWS team to
+  finalise host).
+- **Payload:** identical to `/api/documents/search/`:
+  `{"query": str, "top_k": int}`.
+- **Response:** identical shape to the existing endpoint —
+  `{count, query, results: [{type, source_url, text, title, similarity}]}`.
+  `type` SHOULD always equal `"html"` on this endpoint.
+- **Latency target:** P50 < 500ms, P95 < 2s.
+
+### Why a separate endpoint (not a flag on the existing one)
+- Cleaner ranking: PDF chunks vastly outnumber HTML chunks in the
+  combined corpus (2605 vs 133), so PDFs dominate top-k for ambiguous
+  queries. Two endpoints let us merge top-k from each independently.
+- Independent refresh: HTML pages change more often than PDFs; a
+  separate scrape pipeline can run on a different schedule.
+- Cleaner versioning: schema changes to either index don't affect the
+  other.
+
+### Acceptance criteria (per query, on the new endpoint)
+The 6 user-reported failing queries (see Known Issues 2026-05-13) each
+return at least one chunk with `similarity >= 0.5` whose `source_url`
+is a live www.dpsa.gov.za page AND whose `text` contains the canonical
+fact for that query (e.g. "012 336" for the contact query, "0800 701
+701" for corruption reporting).
+
+### AI Team obligations
+Once the endpoint is live, `tools/retriever.py` exposes a sibling
+`retrieve_webpages()` function that calls the new endpoint, and
+`demo/pipeline.py` Step 6 merges results from both. The integration
+code is gated by the `AWS_WEBPAGES_SEARCH_URL` env var so the bot
+degrades cleanly to the combined-index endpoint when unset. Code
+landed pre-emptively per the AWS team's request to unblock both
+teams in parallel.
+
+### Target
+Endpoint URL communicated by **2026-05-27**. Working integration in
+production within 3 days of the endpoint coming live.
+
+---
+
 ## Known Issues & Notes
 *Append findings here as the system evolves.*
 
