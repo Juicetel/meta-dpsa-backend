@@ -143,3 +143,28 @@ Any changes to the data schema (Section 2) or trigger payload format (Section 3)
 - [ ] Confirm embedding model name and dimensions (currently assumed 1536)
 - [ ] Confirm scrape schedule (nightly? on-demand? both?)
 - [ ] Agree on communication channel for escalation (Section 6 step 3)
+- [ ] 2026-05-13 — HTML page coverage gap. The live API
+      (http://13.247.229.2:8000/api/documents/search/) returns 5-field
+      chunks `{type, source_url, text, title, similarity}`. The agreed
+      schema in §2 lists `category`, `scraped_at`, `circular_number`,
+      `posting_date`, `reference_number` — the live response has none
+      of these. Confirm whether they are dropped, pending, or in a
+      separate endpoint.
+
+      Six high-value HTML queries either return no chunk or return a
+      chunk with similarity < 0.5 (user feedback PDF, 2026-05):
+        1. "What is the role of DPSA?"
+        2. "How do I contact DPSA?" (email + physical address expected)
+        3. "Where do I report corruption?"
+        4. "Where do I find PAIA forms?"
+        5. "Where do I find Z83 forms?"
+        6. "Can DPSA help with my job application?"
+
+      Success criterion: each of these returns at least one chunk with
+      `type="html"` AND `similarity >= 0.5` whose `source_url` resolves
+      (HTTP 200) on www.dpsa.gov.za.
+
+      Target resolution: 2026-05-27 (2 weeks). If unmet, AI Team will
+      ship a contingent supplemental retriever (Phase B in
+      `.claude/plans/he-bot-struggles-to-federated-biscuit.md`) as an
+      interim fix, with the AWS index remaining the long-term solution.
