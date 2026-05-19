@@ -67,6 +67,7 @@ const toast = useToast()
 const overlay = useOverlay()
 const { loggedIn, openInPopup } = useUserSession()
 const { csrf, headerName } = useCsrf()
+const api = useApi()
 
 const open = ref(false)
 
@@ -77,7 +78,7 @@ const deleteModal = overlay.create(LazyModalConfirm, {
   }
 })
 
-const { data: chats, refresh: refreshChats } = await useFetch('/api/chats', {
+const { data: chats, refresh: refreshChats } = await useFetch(api('/api/chats'), {
   key: 'chats',
   transform: data => data.map(chat => ({
     id: chat.id,
@@ -92,7 +93,7 @@ onNuxtReady(async () => {
   const first10 = (chats.value || []).slice(0, 10)
   for (const chat of first10) {
     // prefetch the chat and let the browser cache it
-    await $fetch(`/api/chats/${chat.id}`)
+    await $fetch(api(`/api/chats/${chat.id}`))
   }
 })
 
@@ -123,7 +124,7 @@ async function deleteChat(id: string) {
     return
   }
 
-  await $fetch(`/api/chats/${id}`, {
+  await $fetch(api(`/api/chats/${id}`), {
     method: 'DELETE',
     headers: { [headerName]: csrf }
   })

@@ -7,6 +7,7 @@ const props = defineProps<{
 
 const toast = useToast()
 const { csrf, headerName } = useCsrf()
+const api = useApi()
 
 const currentRating = ref<'up' | 'down' | null>(props.initialRating ?? null)
 const showCommentBox = ref(false)
@@ -16,7 +17,7 @@ const saving = ref(false)
 async function persist(rating: 'up' | 'down', commentToSend: string | null) {
   saving.value = true
   try {
-    await $fetch(`/api/messages/${props.messageId}/rating`, {
+    await $fetch(api(`/api/messages/${props.messageId}/rating`), {
       method: 'PUT',
       headers: { [headerName]: csrf },
       body: { rating, comment: commentToSend ?? undefined }

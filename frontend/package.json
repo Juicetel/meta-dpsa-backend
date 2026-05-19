@@ -21,7 +21,6 @@
     "@iconify-json/logos": "^1.2.10",
     "@iconify-json/lucide": "^1.2.98",
     "@iconify-json/simple-icons": "^1.2.74",
-    "@iframe-resizer/child": "^5.5.9",
     "@libsql/client": "^0.17.0",
     "@nuxt/image": "2.0.0",
     "@nuxt/ui": "^4.5.1",
@@ -57,7 +56,8 @@
     "drizzle-kit": "^0.31.9",
     "eslint": "^10.0.3",
     "typescript": "^5.9.3",
-    "vue-tsc": "^3.2.5"
+    "vue-tsc": "^3.2.5",
+    "xml2js": "^0.6.2"
   },
   "packageManager": "pnpm@10.32.1"
 }

@@ -16,6 +16,7 @@ const components = {
 const route = useRoute()
 const toast = useToast()
 const clipboard = useClipboard()
+const api = useApi()
 
 function getFileName(url: string): string {
   try {
@@ -28,7 +29,7 @@ function getFileName(url: string): string {
   }
 }
 
-const { data } = await useFetch(`/api/chats/${route.params.id}`, {
+const { data } = await useFetch(api(`/api/chats/${route.params.id}`), {
   cache: 'force-cache'
 })
 if (!data.value) {
@@ -48,7 +49,7 @@ const initialRatings = computed(() => {
   return map
 })
 
-const { data: modelInfo } = await useFetch<{ raw: string, label: string }>('/api/model', {
+const { data: modelInfo } = await useFetch<{ raw: string, label: string }>(api('/api/model'), {
   default: () => ({ raw: '', label: 'Loading model…' })
 })
 
@@ -60,7 +61,7 @@ const chat = new Chat({
   id: data.value.id,
   messages: data.value.messages,
   transport: new DefaultChatTransport({
-    api: `/api/chats/${data.value.id}`,
+    api: api(`/api/chats/${data.value.id}`),
     headers: { [headerName]: csrf }
   }),
   onData: (dataPart) => {

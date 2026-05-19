@@ -4,12 +4,13 @@ const loading = ref(false)
 const chatId = crypto.randomUUID()
 
 const { csrf, headerName } = useCsrf()
+const api = useApi()
 
 async function createChat(prompt: string) {
   input.value = prompt
   loading.value = true
 
-  const chat = await $fetch('/api/chats', {
+  const chat = await $fetch(api('/api/chats'), {
     method: 'POST',
     headers: { [headerName]: csrf },
     body: {
@@ -193,7 +194,7 @@ const quickChats = [
                 class="rounded-lg border border-default overflow-hidden flex flex-col bg-default"
               >
                 <div class="h-32 w-full overflow-hidden bg-white dark:bg-gray-900">
-                  <img :src="topic.image" :alt="topic.label" class="w-full h-full object-cover" />
+                  <NuxtImg :src="topic.image" :alt="topic.label" class="w-full h-full object-cover" />
                 </div>
                 <div class="p-4 flex flex-col gap-3 flex-1">
                   <h4 class="font-semibold text-black dark:text-white">{{ topic.label }}</h4>
